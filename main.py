@@ -92,14 +92,40 @@ for E_t, nu_t in zip(E_values, nu_values):
     Vt_values.append(Vt_t)
 
 #VVV графики 2 VVV
+#VVV графики 2 VVV
 plt.figure(figsize=(12, 6))
 plt.plot(times / 3600, V_values, label='Модуль скорости V')
+plt.xlabel('Время, часы')
+plt.ylabel('Скорость, км/с')
+plt.title('Зависимость скоростей от времени')
+plt.legend()
+plt.grid()
+plt.show()
+
+plt.figure(figsize=(12, 6))
 plt.plot(times / 3600, Vp_values, label='Параболическая скорость Vp')
+plt.xlabel('Время, часы')
+plt.ylabel('Скорость, км/с')
+plt.title('Зависимость скоростей от времени')
+plt.legend()
+plt.grid()
+plt.show()
+
+plt.figure(figsize=(12, 6))
 plt.plot(times / 3600, Vr_values, label='Радиальная скорость Vr')
+plt.xlabel('Время, часы')
+plt.ylabel('Скорость, км/с')
+plt.title('Зависимость скоростей от времени')
+plt.legend()
+plt.grid()
+plt.show()
+
+plt.figure(figsize=(12, 6))
 plt.plot(times / 3600, Vt_values, label='Трансверсальная скорость Vt')
 plt.xlabel('Время, часы')
 plt.ylabel('Скорость, км/с')
 plt.title('Зависимость скоростей от времени')
 plt.legend()
 plt.grid()
+
 plt.show()
