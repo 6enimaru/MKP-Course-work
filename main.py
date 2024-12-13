@@ -1,131 +1,88 @@
-import numpy as np
+import math
 import matplotlib.pyplot as plt
-from scipy.optimize import fsolve
 
-a = 15000
-e = 0.2
-mu = 398600
-t = 5400
+#дано
+MU = 398600
+a = 6750
+e = 0.014
+T = 5400
 
+#VVV формулы VVV
+def calculate_mean_motion(mu, a):
+    return math.sqrt(mu / a**3)
+def calculate_mean_anomaly(n, t):
+    return n * t
+def calculate_eccentric_anomaly(M, e, tol=1e-6):
+    E = M
+    while True:
+        delta_E = (M - (E - e * math.sin(E))) / (1 - e * math.cos(E))
+        E += delta_E
+        if abs(delta_E) < tol:
+            break
+    return E
+def calculate_true_anomaly(E, e):
+    numerator = math.sqrt(1 + e) * math.sin(E / 2)
+    denominator = math.sqrt(1 - e) * math.cos(E / 2)
+    return 2 * math.atan2(numerator, denominator)
+def calculate_radius_vector(a, e, nu):
+    return a * (1 - e**2) / (1 + e * math.cos(nu))
+def calculate_angular_momentum(mu, a, e):
+    return math.sqrt(mu * a * (1 - e**2))
+def calculate_total_velocity(mu, r, a):
+    return math.sqrt(mu * (2 / r - 1 / a))
+def calculate_radial_velocity(mu, h, e, nu):
+    return mu / h * e * math.sin(nu)
+def calculate_transverse_velocity(h, r):
+    return h / r
+def plot_graph(x_values, y_values, labels, title, x_label, y_label):
+    plt.figure(figsize=(10, 5))
+    for y, label in zip(y_values, labels):
+        plt.plot(x_values, y, label=label)
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
-n = np.sqrt(mu / a**3)
-T = 2 * np.pi / n
-M = n * t
+#VVV расчеты VVV
+n = calculate_mean_motion(MU, a)
+M = calculate_mean_anomaly(n, T)
+E = calculate_eccentric_anomaly(M, e)
+nu = calculate_true_anomaly(E, e)
+r = calculate_radius_vector(a, e, nu)
+h = calculate_angular_momentum(MU, a, e)
+V = calculate_total_velocity(MU, r, a)
+Vr = calculate_radial_velocity(MU, h, e, nu)
+Vt = calculate_transverse_velocity(h, r)
 
-def kepler_eq(E, M, e):
-    return E - e * np.sin(E) - M
+#VVV результаты VVV
+print(f"Среднее движение (n): {n:.4f} рад/с")
+print(f"Средняя аномалия (M): {M:.4f} рад")
+print(f"Эксцентрическая аномалия (E): {E:.4f} рад")
+print(f"Истинная аномалия (ν): {nu:.4f} рад")
+print(f"Радиус-вектор (r): {r:.2f} км")
+print(f"Относительный момент импульса (h): {h:.2f} км^2/с")
+print(f"Модуль полной скорости (V): {V:.2f} км/с")
+print(f"Радиальная скорость (Vr): {Vr:.2f} км/с")
+print(f"Трансверсальная скорость (Vt): {Vt:.2f} км/с")
 
-E_initial_guess = M
-E = fsolve(kepler_eq, E_initial_guess, args=(M, e))[0]
+#VVV графики VVV
+time_values = [i for i in range(0, T * 2, 100)]
+M_values = [calculate_mean_anomaly(n, t) for t in time_values]
+E_values = [calculate_eccentric_anomaly(M, e) for M in M_values]
+nu_values = [calculate_true_anomaly(E, e) for E in E_values]
+r_values = [calculate_radius_vector(a, e, nu) for nu in nu_values]
+V_values = [calculate_total_velocity(MU, r, a) for r in r_values]
+Vr_values = [calculate_radial_velocity(MU, h, e, nu) for nu in nu_values]
+Vt_values = [calculate_transverse_velocity(h, r) for r in r_values]
 
-nu = 2 * np.arctan2(np.sqrt(1 + e) * np.sin(E / 2),
-                    np.sqrt(1 - e) * np.cos(E / 2))
-
-M_deg = np.degrees(M % (2 * np.pi))
-E_deg = np.degrees(E % (2 * np.pi))
-nu_deg = np.degrees(nu % (2 * np.pi))
-
-print(f"Средняя аномалия M = {M_deg:.2f} градусов")
-print(f"Эксцентриситетная аномалия E = {E_deg:.2f} градусов")
-print(f"Истинная аномалия ν = {nu_deg:.2f} градусов")
-
-times = np.linspace(0, T, 1000)
-M_values = n * times
-
-E_values = []
-nu_values = []
-
-for M_t in M_values:
-    E_t = fsolve(kepler_eq, M_t, args=(M_t, e))[0]
-    E_values.append(E_t)
-    nu_t = 2 * np.arctan2(np.sqrt(1 + e) * np.sin(E_t / 2),
-                          np.sqrt(1 - e) * np.cos(E_t / 2))
-    nu_values.append(nu_t)
-
-M_values_deg = np.degrees(np.unwrap(M_values))
-E_values_deg = np.degrees(np.unwrap(E_values))
-nu_values_deg = np.degrees(np.unwrap(nu_values))
-
-#VVV графики 1 VVV
-plt.figure(figsize=(12, 6))
-plt.plot(times / 3600, M_values_deg, label='Средняя аномалия M')
-plt.plot(times / 3600, E_values_deg, label='Эксцентриситетная аномалия E')
-plt.plot(times / 3600, nu_values_deg, label='Истинная аномалия ν')
-plt.xlabel('Время, часы')
-plt.ylabel('Аномалия, градусы')
-plt.title('Зависимость аномалий от времени')
-plt.legend()
-plt.grid()
-plt.show()
-
-
-
-#2часть
-h = np.sqrt(mu * a * (1 - e**2))
-r = a * (1 - e * np.cos(E))
-V = np.sqrt(mu * (2 / r - 1 / a))
-Vp = np.sqrt(2 * mu / r)
-Vr = (mu / h) * e * np.sin(nu)
-Vt = h / r
-
-print(f"Радиус-вектор r = {r:.2f} км")
-print(f"Модуль полной скорости V = {V:.2f} км/с")
-print(f"Параболическая скорость Vp = {Vp:.2f} км/с")
-print(f"Радиальная скорость Vr = {Vr:.2f} км/с")
-print(f"Трансверсальная скорость Vt = {Vt:.2f} км/с")
-
-V_values = []
-Vp_values = []
-Vr_values = []
-Vt_values = []
-
-for E_t, nu_t in zip(E_values, nu_values):
-    r_t = a * (1 - e * np.cos(E_t))
-    V_t = np.sqrt(mu * (2 / r_t - 1 / a))
-    Vp_t = np.sqrt(2 * mu / r_t)
-    Vr_t = (mu / h) * e * np.sin(nu_t)
-    Vt_t = h / r_t
-
-    V_values.append(V_t)
-    Vp_values.append(Vp_t)
-    Vr_values.append(Vr_t)
-    Vt_values.append(Vt_t)
-
-#VVV графики 2 VVV
-#VVV графики 2 VVV
-plt.figure(figsize=(12, 6))
-plt.plot(times / 3600, V_values, label='Модуль скорости V')
-plt.xlabel('Время, часы')
-plt.ylabel('Скорость, км/с')
-plt.title('Зависимость скоростей от времени')
-plt.legend()
-plt.grid()
-plt.show()
-
-plt.figure(figsize=(12, 6))
-plt.plot(times / 3600, Vp_values, label='Параболическая скорость Vp')
-plt.xlabel('Время, часы')
-plt.ylabel('Скорость, км/с')
-plt.title('Зависимость скоростей от времени')
-plt.legend()
-plt.grid()
-plt.show()
-
-plt.figure(figsize=(12, 6))
-plt.plot(times / 3600, Vr_values, label='Радиальная скорость Vr')
-plt.xlabel('Время, часы')
-plt.ylabel('Скорость, км/с')
-plt.title('Зависимость скоростей от времени')
-plt.legend()
-plt.grid()
-plt.show()
-
-plt.figure(figsize=(12, 6))
-plt.plot(times / 3600, Vt_values, label='Трансверсальная скорость Vt')
-plt.xlabel('Время, часы')
-plt.ylabel('Скорость, км/с')
-plt.title('Зависимость скоростей от времени')
-plt.legend()
-plt.grid()
+plot_graph(time_values, [M_values], ["Средняя аномалия (M)"], "Средняя аномалия", "Время, сек", "Аномалия, рад")
+plot_graph(time_values, [E_values], ["Эксцентрическая аномалия (E)"], "Эксцентрическая аномалия", "Время, сек", "Аномалия, рад")
+plot_graph(time_values, [nu_values], ["Истинная аномалия (ν)"], "Истинная аномалия", "Время, сек", "Аномалия, рад")
+plot_graph(time_values, [r_values], ["Радиус-вектор (r)"], "Радиус-вектор", "Время, сек", "Радиус, км")
+plot_graph(time_values, [V_values], ["Полная скорость (V)"], "Полная скорость", "Время, сек", "Скорость, км/с")
+plot_graph(time_values, [Vr_values], ["Радиальная скорость (Vr)"], "Радиальная скорость", "Время, сек", "Скорость, км/с")
+plot_graph(time_values, [Vt_values], ["Трансверсальная скорость (Vt)"], "Трансверсальная скорость", "Время, сек", "Скорость, км/с")
 
 plt.show()
