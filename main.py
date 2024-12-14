@@ -2,10 +2,10 @@ import math
 import matplotlib.pyplot as plt
 
 #дано
+a = 6950
+e = 0.0613
+T = 5800
 MU = 398600
-a = 6750
-e = 0.014
-T = 5400
 
 #VVV формулы VVV
 def calculate_mean_motion(mu, a):
@@ -62,13 +62,13 @@ print(f"Средняя аномалия (M): {M:.4f} рад")
 print(f"Эксцентрическая аномалия (E): {E:.4f} рад")
 print(f"Истинная аномалия (ν): {nu:.4f} рад")
 print(f"Радиус-вектор (r): {r:.2f} км")
-print(f"Относительный момент импульса (h): {h:.2f} км^2/с")
+print(f"Относительный момент импульса (h): {h:.2f} км²/с")
 print(f"Модуль полной скорости (V): {V:.2f} км/с")
 print(f"Радиальная скорость (Vr): {Vr:.2f} км/с")
 print(f"Трансверсальная скорость (Vt): {Vt:.2f} км/с")
 
 #VVV графики VVV
-time_values = [i for i in range(0, T * 2, 100)]
+time_values = [i for i in range(0, int(T * 2), 10)]
 M_values = [calculate_mean_anomaly(n, t) for t in time_values]
 E_values = [calculate_eccentric_anomaly(M, e) for M in M_values]
 nu_values = [calculate_true_anomaly(E, e) for E in E_values]
@@ -81,8 +81,6 @@ plot_graph(time_values, [M_values], ["Средняя аномалия (M)"], "С
 plot_graph(time_values, [E_values], ["Эксцентрическая аномалия (E)"], "Эксцентрическая аномалия", "Время, сек", "Аномалия, рад")
 plot_graph(time_values, [nu_values], ["Истинная аномалия (ν)"], "Истинная аномалия", "Время, сек", "Аномалия, рад")
 plot_graph(time_values, [r_values], ["Радиус-вектор (r)"], "Радиус-вектор", "Время, сек", "Радиус, км")
-plot_graph(time_values, [V_values], ["Полная скорость (V)"], "Полная скорость", "Время, сек", "Скорость, км/с")
+plot_graph(time_values, [V_values], ["Модуль полной скорости (V)"], "Модуль полной скорости", "Время, сек", "Скорость, км/с")
 plot_graph(time_values, [Vr_values], ["Радиальная скорость (Vr)"], "Радиальная скорость", "Время, сек", "Скорость, км/с")
 plot_graph(time_values, [Vt_values], ["Трансверсальная скорость (Vt)"], "Трансверсальная скорость", "Время, сек", "Скорость, км/с")
-
-plt.show()
